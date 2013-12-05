@@ -1,0 +1,63 @@
+.checkers-board {
+	height: 500px;
+	width: 500px;
+	border-spacing: 0;
+	border: 2px solid black;
+}
+
+.checkers-board td {
+	height: 12.5%;
+	width: 12.5%;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.checkers-board tr:nth-child(odd) td:nth-child(odd) {
+	background-color: red;
+}
+.checkers-board tr:nth-child(odd) td:nth-child(even) {
+	background-color: black;
+}
+
+.checkers-board tr:nth-child(even) td:nth-child(odd) {
+	background-color: black;
+}
+.checkers-board tr:nth-child(even) td:nth-child(even) {
+	background-color: red;
+}
+
+.checkers-board td {
+	position: relative;
+}
+
+.checkers-board .piece {
+	/*
+	This is basically a CSS 2 hack for the CSS 3 equivalent of
+	`box-sizing: padding-box;`, which isn't widely supported.
+	*/
+	display: block;
+	position:absolute;
+	height:auto;
+	bottom:0;
+	top:0;
+	left:0;
+	right:0;
+
+	margin: 8%;
+	background-color: gray;
+
+	border: 2px solid darkgray;
+	border-radius: 50%;
+}
+
+.checkers-board .red-piece {
+	background-color: hsl(0, 100%, 50%);
+
+	border-color: hsl(0, 100%, 70%);
+}
+
+.checkers-board .black-piece {
+	background-color: hsl(0, 0%, 30%);
+
+	border-color: hsl(0, 0%, 40%);
+}

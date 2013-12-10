@@ -44,6 +44,7 @@ CheckerBoard.prototype.isBlackSpace = function(pos) {
 	return !isWhite;
 };
 CheckerBoard.prototype.isValidSpace = function(pos) {
+	if (pos === null || pos === undefined) return false;
 	return (pos.x >= 0 && pos.x < 8) && (pos.y >= 0 && pos.y < 8);
 };
 CheckerBoard.prototype.getPiece = function(pos) {

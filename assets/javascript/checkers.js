@@ -47,6 +47,9 @@ CheckerBoard.prototype.isValidSpace = function(pos) {
 	if (pos === null || pos === undefined) return false;
 	return (pos.x >= 0 && pos.x < 8) && (pos.y >= 0 && pos.y < 8);
 };
+CheckerBoard.prototype.isEmptySpace = function(pos) {
+	return this.getPiece(pos) === null;
+};
 CheckerBoard.prototype.getPiece = function(pos) {
 	if (!this.isValidSpace(pos)) return undefined;
 
@@ -59,28 +62,26 @@ CheckerBoard.prototype.setPiece = function(pos, piece) {
 	piece.position = pos;
 	this.board[pos.x][pos.y] = piece;
 };
-CheckerBoard.prototype.getLegalMoves = function(pos) {
-	if (!this.isValidSpace(pos)) return [];
-
-	var piece = this.getPiece(pos);
+CheckerBoard.prototype.getLegalMoves = function(piece) {
 	if (piece === null) return [];
 
-	var movementVectors = piece.getMovementVectors();
 	var legalTargets = [];
 
+	var movementVectors = piece.getMovementVectors();
 	for (var movementVector in movementVectors) {
 		movementVector = movementVectors[movementVector];
 
-		var pos2 = pos.add(movementVector);
-		var piece2 = this.getPiece(pos2);
+		var potentialTarget = piece.position.add(movementVector);
+		var piece2 = this.getPiece(potentialTarget);
 
-		if (piece2 === null) {
-			legalTargets.push(pos2);
-		} else if (piece2 !== undefined && piece2 !== null && piece.owner != piece2.owner) {
-			pos2 = pos2.add(movementVector);
-			piece2 = this.getPiece(pos2);
+		if (isValidSpace(potentialTarget)) {
+			if (isEmptySpace(potentialTarget)) {
+				legalTargets.push(potentialTarget);
+			} else if (piece.owner != this.getPiece(potentialTarget).owner) { // If jump might be possible...
+				potentialTarget = potentialTarget.add(movementVector);
 
-			if (piece2 === null) legalTargets.push(pos2);
+				if (isValidSpace(potentialTarget) && isEmptySpace(potentialTarget)) legalTargets.push(potentialTarget);
+			}
 		}
 	}
 

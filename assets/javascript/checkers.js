@@ -62,6 +62,12 @@ CheckerBoard.prototype.setPiece = function(pos, piece) {
 	piece.position = pos;
 	this.board[pos.x][pos.y] = piece;
 };
+CheckerBoard.prototype.clearPiece = function(piece) {
+	if (piece.position === null) throw "Piece " + piece + " cannot be cleared because it is not on the board.";
+
+	piece.position = null;
+	this.board[pos.x][pos.y] = null;
+};
 CheckerBoard.prototype.getLegalMoves = function(piece) {
 	if (piece === null) return [];
 
@@ -87,6 +93,28 @@ CheckerBoard.prototype.getLegalMoves = function(piece) {
 
 	return legalTargets;
 };
+CheckerBoard.prototype.isLegalMove = function(piece, pos) {
+	var legalMoves = this.getLegalMoves(piece);
+	for (var move in legalMoves) {
+		move = legalMoves[move];
+		if (move.equals(pos)) return true;
+	}
+	return false;
+};
+CheckerBoard.prototype.doMove = function(piece, pos) {
+	if (!this.isLegalMove(piece, pos)) return false;
+
+	var movementVector = pos.subtract(piece.position);
+	if (Math.abs(movementVector.x) > 1 || Math.abs(movementVector.y) > 1) { // Jump
+		var direction = new Vector2(movementVector.x > 0 ? 1 : -1, movementVector.y > 0 ? 1 : -1);
+		var jumpedPos = piece.position.add(diection);
+
+		this.clearPiece(this.getPiece(jumpedPos));
+	}
+
+	this.clearPiece(piece);
+	this.setPiece(pos, piece);
+};
 
 
 function Vector2(x, y) {
@@ -96,6 +124,13 @@ function Vector2(x, y) {
 Vector2.prototype.add = function(other) {
 	if (!(other instanceof Vector2)) throw "Cannot add '" + other + "'' to '" + this + "'!";
 	return new Vector2(this.x + other.x, this.y + other.y);
+};
+Vector2.prototype.subtract = function(other) {
+	if (!(other instanceof Vector2)) throw "Cannot subtract '" + other + "'' from '" + this + "'!";
+	return new Vector2(this.x - other.x, this.y - other.y);
+};
+Vector2.prototype.equals = function(other) {
+	return ((other instanceof Vector2) && (this.x == other.x) && (this.y == other.y));
 };
 
 function CheckerPiece(owner, rank) {

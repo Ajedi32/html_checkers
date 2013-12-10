@@ -53,7 +53,10 @@ CheckerBoard.prototype.getPiece = function(pos) {
 	return (typeof piece == 'undefined') ? null : piece;
 };
 CheckerBoard.prototype.setPiece = function(pos, piece) {
-	return this.board[pos.x][pos.y] = piece;
+	if (piece.position !== null) throw "Piece " + piece + " cannot be on more than one tile at once.";
+
+	piece.position = pos;
+	this.board[pos.x][pos.y] = piece;
 };
 CheckerBoard.prototype.getLegalMoves = function(pos) {
 	if (!this.isValidSpace(pos)) return [];
@@ -98,6 +101,7 @@ function CheckerPiece(owner, rank) {
 
 	this.owner = owner;
 	this.rank = rank;
+	this.position = null;
 }
 CheckerPiece.prototype.getMovementVectors = function () {
 	var movementVectors = [];

@@ -1,31 +1,22 @@
-/*
-* A standard, 8x8 American checker board.
-*/
-function CheckerBoard() {
-	this.board = new Array(8);
+function CheckersGame(options) {
+	options = (typeof options == 'undefined') ? {} : options;
+
+	this.board = (options.board === undefined) ? new CheckerBoard() : options.board;
 	this.setUp();
 }
-CheckerBoard.prototype.PLAYERS = {
+CheckersGame.PLAYERS = {
 	RED: 0,
 	BLACK: 1
 };
-CheckerBoard.prototype.initialize = function() {
-	this.board = new Array(8);
-	for (var i = 0; i < 8; ++i) {
-		this.board[i] = new Array(8);
-	}
-};
-CheckerBoard.prototype.setUp = function() {
-	this.initialize();
-
+CheckersGame.prototype.setUp = function() {
 	var column;
 	var row;
 
 	// Populate black spaces on top three rows of the board with black pieces
 	for (column = 0; column < 8; ++column) {
 		for (row = 0; row < 3; ++row) {
-			if (this.isBlackSpace(new Vector2(column, row))) {
-				this.setPiece(new Vector2(column, row), new CheckerPiece(this.PLAYERS.BLACK));
+			if (this.board.isBlackSpace(new Vector2(column, row))) {
+				this.board.setPiece(new Vector2(column, row), new CheckerPiece(CheckersGame.PLAYERS.BLACK));
 			}
 		}
 	}
@@ -33,10 +24,72 @@ CheckerBoard.prototype.setUp = function() {
 	// Populate black spaces on bottom three rows of the board with red pieces
 	for (column = 0; column < 8; ++column) {
 		for (row = 5; row < 8; ++row) {
-			if (this.isBlackSpace(new Vector2(column, row))) {
-				this.setPiece(new Vector2(column, row), new CheckerPiece(this.PLAYERS.RED));
+			if (this.board.isBlackSpace(new Vector2(column, row))) {
+				this.board.setPiece(new Vector2(column, row), new CheckerPiece(CheckersGame.PLAYERS.RED));
 			}
 		}
+	}
+};
+CheckersGame.prototype.getLegalMoves = function(piece) {
+	if (piece === null) return [];
+
+	var legalTargets = [];
+
+	var movementVectors = piece.getMovementVectors();
+	for (var movementVector in movementVectors) {
+		movementVector = movementVectors[movementVector];
+
+		var potentialTarget = piece.position.add(movementVector);
+		var piece2 = this.board.getPiece(potentialTarget);
+
+		if (this.board.isValidSpace(potentialTarget)) {
+			if (this.board.isEmptySpace(potentialTarget)) {
+				legalTargets.push(potentialTarget);
+			} else if (piece.owner != this.board.getPiece(potentialTarget).owner) { // If jump might be possible...
+				potentialTarget = potentialTarget.add(movementVector);
+
+				if (this.board.isValidSpace(potentialTarget) && this.board.isEmptySpace(potentialTarget)) legalTargets.push(potentialTarget);
+			}
+		}
+	}
+
+	return legalTargets;
+};
+CheckersGame.prototype.isLegalMove = function(piece, pos) {
+	var legalMoves = this.getLegalMoves(piece);
+	for (var move in legalMoves) {
+		move = legalMoves[move];
+		if (move.equals(pos)) return true;
+	}
+	return false;
+};
+CheckersGame.prototype.doMove = function(piece, pos) {
+	if (!this.isLegalMove(piece, pos)) return false;
+
+	var movementVector = pos.subtract(piece.position);
+	if (Math.abs(movementVector.x) > 1 || Math.abs(movementVector.y) > 1) { // Jump
+		var direction = new Vector2(movementVector.x > 0 ? 1 : -1, movementVector.y > 0 ? 1 : -1);
+		var jumpedPos = piece.position.add(diection);
+
+		this.board.clearPiece(this.board.getPiece(jumpedPos));
+	}
+
+	this.board.clearPiece(piece);
+	this.board.setPiece(pos, piece);
+};
+
+
+/*
+* A standard, 8x8 American checker board.
+*/
+function CheckerBoard() {
+	this.board = new Array(8);
+	this.initialize();
+}
+CheckerBoard.prototype.initialize = function() {
+	this.board = new Array(8);
+	for (var i = 0; i < 8; ++i) {
+		this.board[i] = new Array(8);
 	}
 };
 CheckerBoard.prototype.isBlackSpace = function(pos) {
@@ -68,53 +121,6 @@ CheckerBoard.prototype.clearPiece = function(piece) {
 	piece.position = null;
 	this.board[pos.x][pos.y] = null;
 };
-CheckerBoard.prototype.getLegalMoves = function(piece) {
-	if (piece === null) return [];
-
-	var legalTargets = [];
-
-	var movementVectors = piece.getMovementVectors();
-	for (var movementVector in movementVectors) {
-		movementVector = movementVectors[movementVector];
-
-		var potentialTarget = piece.position.add(movementVector);
-		var piece2 = this.getPiece(potentialTarget);
-
-		if (isValidSpace(potentialTarget)) {
-			if (isEmptySpace(potentialTarget)) {
-				legalTargets.push(potentialTarget);
-			} else if (piece.owner != this.getPiece(potentialTarget).owner) { // If jump might be possible...
-				potentialTarget = potentialTarget.add(movementVector);
-
-				if (isValidSpace(potentialTarget) && isEmptySpace(potentialTarget)) legalTargets.push(potentialTarget);
-			}
-		}
-	}
-
-	return legalTargets;
-};
-CheckerBoard.prototype.isLegalMove = function(piece, pos) {
-	var legalMoves = this.getLegalMoves(piece);
-	for (var move in legalMoves) {
-		move = legalMoves[move];
-		if (move.equals(pos)) return true;
-	}
-	return false;
-};
-CheckerBoard.prototype.doMove = function(piece, pos) {
-	if (!this.isLegalMove(piece, pos)) return false;
-
-	var movementVector = pos.subtract(piece.position);
-	if (Math.abs(movementVector.x) > 1 || Math.abs(movementVector.y) > 1) { // Jump
-		var direction = new Vector2(movementVector.x > 0 ? 1 : -1, movementVector.y > 0 ? 1 : -1);
-		var jumpedPos = piece.position.add(diection);
-
-		this.clearPiece(this.getPiece(jumpedPos));
-	}
-
-	this.clearPiece(piece);
-	this.setPiece(pos, piece);
-};
 
 
 function Vector2(x, y) {
@@ -133,6 +139,7 @@ Vector2.prototype.equals = function(other) {
 	return ((other instanceof Vector2) && (this.x == other.x) && (this.y == other.y));
 };
 
+
 function CheckerPiece(owner, rank) {
 	rank = typeof rank !== 'undefined' ? rank : this.RANKS.MAN;
 
@@ -142,8 +149,8 @@ function CheckerPiece(owner, rank) {
 }
 CheckerPiece.prototype.getMovementVectors = function () {
 	var movementVectors = [];
-	if (this.owner == CheckerBoard.prototype.PLAYERS.RED || this.rank == this.RANKS.KING) movementVectors.push(new Vector2(-1, -1), new Vector2(1, -1));
-	if (this.owner == CheckerBoard.prototype.PLAYERS.BLACK || this.rank == this.RANKS.KING) movementVectors.push(new Vector2(-1, 1), new Vector2(1, 1));
+	if (this.owner == CheckerBoard.PLAYERS.RED || this.rank == this.RANKS.KING) movementVectors.push(new Vector2(-1, -1), new Vector2(1, -1));
+	if (this.owner == CheckerBoard.PLAYERS.BLACK || this.rank == this.RANKS.KING) movementVectors.push(new Vector2(-1, 1), new Vector2(1, 1));
 	return movementVectors;
 };
 CheckerPiece.prototype.RANKS = {

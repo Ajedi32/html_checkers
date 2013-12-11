@@ -149,8 +149,8 @@ function CheckerPiece(owner, rank) {
 }
 CheckerPiece.prototype.getMovementVectors = function () {
 	var movementVectors = [];
-	if (this.owner == CheckerBoard.PLAYERS.RED || this.rank == this.RANKS.KING) movementVectors.push(new Vector2(-1, -1), new Vector2(1, -1));
-	if (this.owner == CheckerBoard.PLAYERS.BLACK || this.rank == this.RANKS.KING) movementVectors.push(new Vector2(-1, 1), new Vector2(1, 1));
+	if (this.owner == CheckersGame.PLAYERS.RED || this.rank == this.RANKS.KING) movementVectors.push(new Vector2(-1, -1), new Vector2(1, -1));
+	if (this.owner == CheckersGame.PLAYERS.BLACK || this.rank == this.RANKS.KING) movementVectors.push(new Vector2(-1, 1), new Vector2(1, 1));
 	return movementVectors;
 };
 CheckerPiece.prototype.RANKS = {

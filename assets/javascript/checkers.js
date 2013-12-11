@@ -2,13 +2,13 @@ function CheckersGame(options) {
 	options = (typeof options == 'undefined') ? {} : options;
 
 	this.board = (options.board === undefined) ? new CheckerBoard() : options.board;
-	this.setUp();
+	this._setUp();
 }
 CheckersGame.PLAYERS = {
 	RED: 0,
 	BLACK: 1
 };
-CheckersGame.prototype.setUp = function() {
+CheckersGame.prototype._setUp = function() {
 	var column;
 	var row;
 
@@ -83,13 +83,13 @@ CheckersGame.prototype.doMove = function(piece, pos) {
 * A standard, 8x8 American checker board.
 */
 function CheckerBoard() {
-	this.board = new Array(8);
-	this.initialize();
+	this._board = new Array(8);
+	this._initialize();
 }
-CheckerBoard.prototype.initialize = function() {
-	this.board = new Array(8);
+CheckerBoard.prototype._initialize = function() {
+	this._board = new Array(8);
 	for (var i = 0; i < 8; ++i) {
-		this.board[i] = new Array(8);
+		this._board[i] = new Array(8);
 	}
 };
 CheckerBoard.prototype.isBlackSpace = function(pos) {
@@ -106,20 +106,20 @@ CheckerBoard.prototype.isEmptySpace = function(pos) {
 CheckerBoard.prototype.getPiece = function(pos) {
 	if (!this.isValidSpace(pos)) return undefined;
 
-	var piece = this.board[pos.x][pos.y];
+	var piece = this._board[pos.x][pos.y];
 	return (typeof piece == 'undefined') ? null : piece;
 };
 CheckerBoard.prototype.setPiece = function(pos, piece) {
 	if (piece.position !== null) throw "Piece " + piece + " cannot be on more than one tile at once.";
 
 	piece.position = pos;
-	this.board[pos.x][pos.y] = piece;
+	this._board[pos.x][pos.y] = piece;
 };
 CheckerBoard.prototype.clearPiece = function(piece) {
 	if (piece.position === null) throw "Piece " + piece + " cannot be cleared because it is not on the board.";
 
 	piece.position = null;
-	this.board[pos.x][pos.y] = null;
+	this._board[pos.x][pos.y] = null;
 };
 
 

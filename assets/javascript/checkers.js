@@ -1,3 +1,25 @@
+Function.prototype.setSuperclass = function(target) {
+	this._superclass = target;
+	this.prototype = Object.create(this._superclass.prototype);
+	this.prototype.constructor = this;
+};
+
+Function.prototype.getSuperclass = function(target) {
+	return this._superclass;
+};
+
+Object.defineProperty(Object.prototype, 'callSuper', {
+	value: function(methodName, args) {
+		var superclass = this.constructor.getSuperclass();
+		if (superclass === undefined) throw new TypeError("A superclass for " + this.constructor + " could not be found.");
+
+		var method = superclass.prototype[methodName];
+		if (typeof method != "function") throw new TypeError("TypeError: Object " + superclass.prototype + " has no method '" + methodName + "'");
+
+		return method.apply(this, args);
+	}
+});
+
 function CheckersGame(options) {
 	options = (typeof options == 'undefined') ? {} : options;
 
@@ -159,19 +181,20 @@ CheckerPiece.prototype.RANKS = {
 
 
 /*
-* A proxy for the CheckerBoard class which mirrors changes made to the board
-* in the UI.
+* A subclass of CheckerBoard which mirrors changes made to the board in the UI.
 */
 function HTMLCheckerBoard(htmlElement) {
+	this.constructor.getSuperclass().call(this);
+
 	this._htmlBoard = $(htmlElement).first();
 
 	this._boardSpaces = new Array(8);
 	this._parseSpaces();
-
-	this._board = new CheckerBoard();
 }
+HTMLCheckerBoard.setSuperclass(CheckerBoard);
+
 HTMLCheckerBoard.prototype._parseSpaces = function() {
-	this._initialize();
+	this._initializeSpaces();
 
 	var rows = this._htmlBoard.find("tr");
 
@@ -185,27 +208,15 @@ HTMLCheckerBoard.prototype._parseSpaces = function() {
 		}
 	}
 };
-HTMLCheckerBoard.prototype._initialize = function() {
+HTMLCheckerBoard.prototype._initializeSpaces = function() {
 	this._boardSpaces = new Array(8);
 	for (var i = 0; i < 8; ++i) {
 		this._boardSpaces[i] = new Array(8);
 	}
 };
-
-HTMLCheckerBoard.prototype.isBlackSpace = function(pos) {
-	return this._board.isBlackSpace(pos);
-};
-HTMLCheckerBoard.prototype.isValidSpace = function(pos) {
-	return this._board.isValidSpace(pos);
-};
-HTMLCheckerBoard.prototype.isEmptySpace = function(pos) {
-	return this._board.isEmptySpace(pos);
-};
-HTMLCheckerBoard.prototype.getPiece = function(pos) {
-	return this._board.getPiece(pos);
-};
+// @Override
 HTMLCheckerBoard.prototype.setPiece = function(pos, piece) {
-	this._board.setPiece(pos, piece);
+	this.callSuper('setPiece', arguments);
 
 	var space = this._boardSpaces[pos.x][pos.y];
 	space.empty();
@@ -216,10 +227,11 @@ HTMLCheckerBoard.prototype.setPiece = function(pos, piece) {
 
 	space.append(newPiece);
 };
+// @Override
 HTMLCheckerBoard.prototype.clearPiece = function(piece) {
 	var pos = piece.position;
 
-	this._board.clearPiece(piece);
+	this.callSuper('clearPiece', arguments);
 	this._boardSpaces[pos.x][pos.y].empty();
 };
 

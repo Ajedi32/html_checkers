@@ -78,7 +78,6 @@ CheckersGame.prototype.doMove = function(piece, pos) {
 	this.board.setPiece(pos, piece);
 };
 
-
 /*
 * A standard, 8x8 American checker board.
 */
@@ -140,7 +139,6 @@ Vector2.prototype.equals = function(other) {
 	return ((other instanceof Vector2) && (this.x == other.x) && (this.y == other.y));
 };
 
-
 function CheckerPiece(owner, rank) {
 	rank = typeof rank !== 'undefined' ? rank : this.RANKS.MAN;
 
@@ -158,3 +156,73 @@ CheckerPiece.prototype.RANKS = {
 	MAN: 0,
 	KING: 1
 };
+
+
+/*
+* A proxy for the CheckerBoard class which mirrors changes made to the board
+* in the UI.
+*/
+function HTMLCheckerBoard(htmlElement) {
+	this._htmlBoard = $(htmlElement).first();
+
+	this._boardSpaces = new Array(8);
+	this._parseSpaces();
+
+	this._board = new CheckerBoard();
+}
+HTMLCheckerBoard.prototype._parseSpaces = function() {
+	this._initialize();
+
+	var rows = this._htmlBoard.find("tr");
+
+	var columnNum;
+	var rowNum;
+
+	for (rowNum = 0; rowNum < 8; ++rowNum) {
+		var row = $(rows[rowNum]).find("td");
+		for (columnNum = 0; columnNum < 8; ++columnNum) {
+			this._boardSpaces[columnNum][rowNum] = $(row[columnNum]);
+		}
+	}
+};
+HTMLCheckerBoard.prototype._initialize = function() {
+	this._boardSpaces = new Array(8);
+	for (var i = 0; i < 8; ++i) {
+		this._boardSpaces[i] = new Array(8);
+	}
+};
+
+HTMLCheckerBoard.prototype.isBlackSpace = function(pos) {
+	return this._board.isBlackSpace(pos);
+};
+HTMLCheckerBoard.prototype.isValidSpace = function(pos) {
+	return this._board.isValidSpace(pos);
+};
+HTMLCheckerBoard.prototype.isEmptySpace = function(pos) {
+	return this._board.isEmptySpace(pos);
+};
+HTMLCheckerBoard.prototype.getPiece = function(pos) {
+	return this._board.getPiece(pos);
+};
+HTMLCheckerBoard.prototype.setPiece = function(pos, piece) {
+	this._board.setPiece(pos, piece);
+
+	var space = this._boardSpaces[pos.x][pos.y];
+	space.empty();
+
+	var newPiece = $(document.createElement('div'));
+	newPiece.addClass('piece');
+	newPiece.addClass((piece.owner == CheckersGame.PLAYERS.RED ? 'red' : 'black') + '-piece');
+
+	space.append(newPiece);
+};
+HTMLCheckerBoard.prototype.clearPiece = function(piece) {
+	var pos = piece.position;
+
+	this._board.clearPiece(piece);
+	this._boardSpaces[pos.x][pos.y].empty();
+};
+
+$(document).ready(function() {
+	var game = new CheckersGame({board: new HTMLCheckerBoard(".checkers-board")});
+});

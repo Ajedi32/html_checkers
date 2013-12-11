@@ -69,7 +69,7 @@ CheckersGame.prototype.doMove = function(piece, pos) {
 	var movementVector = pos.subtract(piece.position);
 	if (Math.abs(movementVector.x) > 1 || Math.abs(movementVector.y) > 1) { // Jump
 		var direction = new Vector2(movementVector.x > 0 ? 1 : -1, movementVector.y > 0 ? 1 : -1);
-		var jumpedPos = piece.position.add(diection);
+		var jumpedPos = piece.position.add(direction);
 
 		this.board.clearPiece(this.board.getPiece(jumpedPos));
 	}

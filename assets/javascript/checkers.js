@@ -118,6 +118,7 @@ CheckerBoard.prototype.setPiece = function(pos, piece) {
 CheckerBoard.prototype.clearPiece = function(piece) {
 	if (piece.position === null) throw "Piece " + piece + " cannot be cleared because it is not on the board.";
 
+	var pos = piece.position;
 	piece.position = null;
 	this._board[pos.x][pos.y] = null;
 };

@@ -20,12 +20,38 @@ Object.defineProperty(Object.prototype, 'callSuper', {
 	}
 });
 
+Object.defineProperty(Array.prototype, 'contains', {
+	value: function(object) {
+		for (var i in this) {
+			i = this[i];
+			if (i === object) return true;
+			if (typeof i.equals == 'function' && i.equals(object)) return true;
+		}
+		return false;
+	}
+});
+
+Function.prototype.withArgs = function() {
+	if (typeof this !== "function") {
+		throw new TypeError("Function.prototype.withArgs needs to be called on a function");
+	}
+	var fn = this;
+	var slice = Array.prototype.slice;
+	var args = slice.call(arguments);
+	partial = function() {
+		return fn.apply(this, args.concat(slice.call(arguments)));
+	};
+	//partial.prototype = Object.create(this.prototype);
+	return partial;
+};
 
 function CheckersGame(options) {
 	options = (typeof options == 'undefined') ? {} : options;
 
 	this.board = (options.board === undefined) ? new CheckerBoard() : options.board;
 	this._pieceClass = (options.piece === undefined) ? HTMLCheckerPiece : options.piece;
+
+	this._pieces = [];
 
 	this._setUp();
 }
@@ -37,11 +63,15 @@ CheckersGame.prototype._setUp = function() {
 	var column;
 	var row;
 
+	var piece;
+
 	// Populate black spaces on top three rows of the board with black pieces
 	for (column = 0; column < 8; ++column) {
 		for (row = 0; row < 3; ++row) {
 			if (this.board.isBlackSpace(new Vector2(column, row))) {
-				this.board.setPiece(new Vector2(column, row), new this._pieceClass(CheckersGame.PLAYERS.BLACK));
+				piece = new this._pieceClass(CheckersGame.PLAYERS.BLACK);
+				this._pieces.push(piece);
+				this.board.setPiece(new Vector2(column, row), piece);
 			}
 		}
 	}
@@ -50,7 +80,9 @@ CheckersGame.prototype._setUp = function() {
 	for (column = 0; column < 8; ++column) {
 		for (row = 5; row < 8; ++row) {
 			if (this.board.isBlackSpace(new Vector2(column, row))) {
-				this.board.setPiece(new Vector2(column, row), new this._pieceClass(CheckersGame.PLAYERS.RED));
+				piece = new this._pieceClass(CheckersGame.PLAYERS.RED);
+				this._pieces.push(piece);
+				this.board.setPiece(new Vector2(column, row), piece);
 			}
 		}
 	}
@@ -195,8 +227,60 @@ function HTMLCheckersGame(htmlElement) {
 		board: new HTMLCheckerBoard(this._htmlGame.find('.checkers-board')),
 		piece: HTMLCheckerPiece
 	});
+
+	this._selectedPiece = null;
+	this._suggestedSpaces = [];
+
+	this._bindEventHandlers();
 }
 HTMLCheckersGame.setSuperclass(CheckersGame);
+
+HTMLCheckersGame.prototype._bindEventHandlers = function() {
+	for (var piece in this._pieces) {
+		piece = this._pieces[piece];
+		piece.on('click', this._selectPiece.bind(this, piece));
+	}
+
+	this.board.onClickSpace(this._clickSpace.bind(this));
+};
+HTMLCheckersGame.prototype._selectPiece = function(piece) {
+	if (this._selectedPiece !== null) this._selectedPiece.deselect();
+	this._selectedPiece = piece;
+	this._selectedPiece.select();
+
+	this._highlightLegalMoves(this._selectedPiece);
+};
+HTMLCheckersGame.prototype._deselectPiece = function() {
+	if (this._selectedPiece !== null) this._selectedPiece.deselect();
+	this._selectedPiece = null;
+};
+HTMLCheckersGame.prototype._highlightLegalMoves = function(piece) {
+	this._dehighlightLegalMoves();
+
+	this._suggestedSpaces = this.getLegalMoves(piece);
+	for (var suggestedSpace in this._suggestedSpaces) {
+		suggestedSpace = this._suggestedSpaces[suggestedSpace];
+		this.board.highlightSpace(suggestedSpace);
+	}
+};
+HTMLCheckersGame.prototype._dehighlightLegalMoves = function() {
+	for (var suggestedSpace in this._suggestedSpaces) {
+		suggestedSpace = this._suggestedSpaces[suggestedSpace];
+		this.board.unhighlightSpace(suggestedSpace);
+	}
+};
+HTMLCheckersGame.prototype._clickSpace = function(position) {
+	if (this._selectedPiece === null) return false;
+	if (!this._suggestedSpaces.contains(position)) return false;
+
+	this.doMove(this._selectedPiece, position);
+};
+HTMLCheckersGame.prototype.doMove = function(piece, pos) {
+	this.callSuper('doMove', arguments);
+
+	this._deselectPiece();
+	this._dehighlightLegalMoves();
+};
 
 
 /*
@@ -233,11 +317,14 @@ HTMLCheckerBoard.prototype._initializeSpaces = function() {
 		this._boardSpaces[i] = new Array(8);
 	}
 };
+HTMLCheckerBoard.prototype._getSpace = function(pos) {
+	return this._boardSpaces[pos.x][pos.y];
+};
 // @Override
 HTMLCheckerBoard.prototype.setPiece = function(pos, piece) {
 	this.callSuper('setPiece', arguments);
 
-	var space = this._boardSpaces[pos.x][pos.y];
+	var space = this._getSpace(pos);
 	space.empty();
 	space.append(piece.htmlElement);
 };
@@ -246,7 +333,24 @@ HTMLCheckerBoard.prototype.clearPiece = function(piece) {
 	var pos = piece.position;
 
 	this.callSuper('clearPiece', arguments);
-	this._boardSpaces[pos.x][pos.y].empty();
+	this._getSpace(new Vector2(pos.x, pos.y)).empty();
+};
+HTMLCheckerBoard.prototype.onClickSpace = function(func) {
+	var columnNum;
+	var rowNum;
+
+	for (columnNum = 0; columnNum < 8; ++columnNum) {
+		for (rowNum = 0; rowNum < 8; ++rowNum) {
+			var pos = new Vector2(columnNum, rowNum);
+			this._getSpace(pos).on('click', func.withArgs(pos));
+		}
+	}
+};
+HTMLCheckerBoard.prototype.highlightSpace = function(pos) {
+	this._getSpace(pos).addClass('selected');
+};
+HTMLCheckerBoard.prototype.unhighlightSpace = function(pos) {
+	this._getSpace(pos).removeClass('selected');
 };
 
 
@@ -263,6 +367,19 @@ function HTMLCheckerPiece(owner, rank) {
 	if (rank == this.RANKS.KING) this.htmlElement.addClass('king-piece');
 }
 HTMLCheckerPiece.setSuperclass(CheckerPiece);
+
+HTMLCheckerPiece.prototype.on = function() {
+	this.htmlElement.on.apply(this.htmlElement, arguments);
+};
+HTMLCheckerPiece.prototype.off = function() {
+	this.htmlElement.off.apply(this.htmlElement, arguments);
+};
+HTMLCheckerPiece.prototype.select = function() {
+	this.htmlElement.addClass('selected');
+};
+HTMLCheckerPiece.prototype.deselect = function() {
+	this.htmlElement.removeClass('selected');
+};
 
 
 $(document).ready(function() {

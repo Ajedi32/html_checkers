@@ -32,6 +32,10 @@
 	position: relative;
 }
 
+.checkers-board .selected {
+	border: 2px solid green;
+}
+
 .checkers-board .piece {
 	/*
 	This is basically a CSS 2 hack for the CSS 3 equivalent of

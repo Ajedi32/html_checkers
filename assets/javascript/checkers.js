@@ -25,6 +25,8 @@ function CheckersGame(options) {
 	options = (typeof options == 'undefined') ? {} : options;
 
 	this.board = (options.board === undefined) ? new CheckerBoard() : options.board;
+	this._pieceClass = (options.piece === undefined) ? HTMLCheckerPiece : options.piece;
+
 	this._setUp();
 }
 CheckersGame.PLAYERS = {
@@ -39,7 +41,7 @@ CheckersGame.prototype._setUp = function() {
 	for (column = 0; column < 8; ++column) {
 		for (row = 0; row < 3; ++row) {
 			if (this.board.isBlackSpace(new Vector2(column, row))) {
-				this.board.setPiece(new Vector2(column, row), new CheckerPiece(CheckersGame.PLAYERS.BLACK));
+				this.board.setPiece(new Vector2(column, row), new this._pieceClass(CheckersGame.PLAYERS.BLACK));
 			}
 		}
 	}
@@ -48,7 +50,7 @@ CheckersGame.prototype._setUp = function() {
 	for (column = 0; column < 8; ++column) {
 		for (row = 5; row < 8; ++row) {
 			if (this.board.isBlackSpace(new Vector2(column, row))) {
-				this.board.setPiece(new Vector2(column, row), new CheckerPiece(CheckersGame.PLAYERS.RED));
+				this.board.setPiece(new Vector2(column, row), new this._pieceClass(CheckersGame.PLAYERS.RED));
 			}
 		}
 	}
@@ -189,7 +191,10 @@ CheckerPiece.prototype.RANKS = {
 function HTMLCheckersGame(htmlElement) {
 	this._htmlGame = $(htmlElement).first();
 
-	this.constructor.getSuperclass().call(this, {board: new HTMLCheckerBoard(this._htmlGame.find('.checkers-board'))});
+	this.constructor.getSuperclass().call(this, {
+		board: new HTMLCheckerBoard(this._htmlGame.find('.checkers-board')),
+		piece: HTMLCheckerPiece
+	});
 }
 HTMLCheckersGame.setSuperclass(CheckersGame);
 
@@ -234,12 +239,7 @@ HTMLCheckerBoard.prototype.setPiece = function(pos, piece) {
 
 	var space = this._boardSpaces[pos.x][pos.y];
 	space.empty();
-
-	var newPiece = $(document.createElement('div'));
-	newPiece.addClass('piece');
-	newPiece.addClass((piece.owner == CheckersGame.PLAYERS.RED ? 'red' : 'black') + '-piece');
-
-	space.append(newPiece);
+	space.append(piece.htmlElement);
 };
 // @Override
 HTMLCheckerBoard.prototype.clearPiece = function(piece) {
@@ -248,6 +248,21 @@ HTMLCheckerBoard.prototype.clearPiece = function(piece) {
 	this.callSuper('clearPiece', arguments);
 	this._boardSpaces[pos.x][pos.y].empty();
 };
+
+
+/*
+* A subclass of CheckerPiece for use with an HTMLCheckerBoard.
+*/
+function HTMLCheckerPiece(owner, rank) {
+	this.constructor.getSuperclass().call(this, owner, rank);
+
+	this.htmlElement = $(document.createElement('div'));
+	this.htmlElement.addClass('piece');
+	this.htmlElement.addClass((this.owner == CheckersGame.PLAYERS.RED ? 'red' : 'black') + '-piece');
+
+	if (rank == this.RANKS.KING) this.htmlElement.addClass('king-piece');
+}
+HTMLCheckerPiece.setSuperclass(CheckerPiece);
 
 
 $(document).ready(function() {

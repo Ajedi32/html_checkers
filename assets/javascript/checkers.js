@@ -20,6 +20,7 @@ Object.defineProperty(Object.prototype, 'callSuper', {
 	}
 });
 
+
 function CheckersGame(options) {
 	options = (typeof options == 'undefined') ? {} : options;
 
@@ -100,6 +101,7 @@ CheckersGame.prototype.doMove = function(piece, pos) {
 	this.board.setPiece(pos, piece);
 };
 
+
 /*
 * A standard, 8x8 American checker board.
 */
@@ -161,6 +163,7 @@ Vector2.prototype.equals = function(other) {
 	return ((other instanceof Vector2) && (this.x == other.x) && (this.y == other.y));
 };
 
+
 function CheckerPiece(owner, rank) {
 	rank = typeof rank !== 'undefined' ? rank : this.RANKS.MAN;
 
@@ -178,6 +181,17 @@ CheckerPiece.prototype.RANKS = {
 	MAN: 0,
 	KING: 1
 };
+
+
+/*
+* A subclass of CheckersGame which mirrors changes made in the game to html
+*/
+function HTMLCheckersGame(htmlElement) {
+	this._htmlGame = $(htmlElement).first();
+
+	this.constructor.getSuperclass().call(this, {board: new HTMLCheckerBoard(this._htmlGame.find('.checkers-board'))});
+}
+HTMLCheckersGame.setSuperclass(CheckersGame);
 
 
 /*
@@ -235,6 +249,7 @@ HTMLCheckerBoard.prototype.clearPiece = function(piece) {
 	this._boardSpaces[pos.x][pos.y].empty();
 };
 
+
 $(document).ready(function() {
-	var game = new CheckersGame({board: new HTMLCheckerBoard(".checkers-board")});
+	var game = new HTMLCheckersGame('.checkers-game');
 });

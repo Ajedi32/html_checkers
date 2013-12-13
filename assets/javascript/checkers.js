@@ -131,8 +131,7 @@ CheckersGame.prototype.doMove = function(piece, pos) {
 		this.board.clearPiece(this.board.getPiece(jumpedPos));
 	}
 
-	this.board.clearPiece(piece);
-	this.board.setPiece(pos, piece);
+	this.board.movePiece(piece, pos);
 };
 
 
@@ -178,6 +177,10 @@ CheckerBoard.prototype.clearPiece = function(piece) {
 	var pos = piece.position;
 	piece.position = null;
 	this._board[pos.x][pos.y] = null;
+};
+CheckerBoard.prototype.movePiece = function(piece, pos) {
+	this.clearPiece(piece);
+	this.setPiece(pos, piece);
 };
 
 
@@ -334,6 +337,14 @@ HTMLCheckerBoard.prototype.clearPiece = function(piece) {
 
 	this.callSuper('clearPiece', arguments);
 	this._getSpace(new Vector2(pos.x, pos.y)).empty();
+};
+HTMLCheckerBoard.prototype.movePiece = function(piece, pos) {
+	this.callSuper('clearPiece', [piece]);
+
+	var space = this._getSpace(pos);
+	space.append(piece.htmlElement);
+
+	this.callSuper('setPiece', [pos, piece]);
 };
 HTMLCheckerBoard.prototype.onClickSpace = function(func) {
 	var columnNum;

@@ -59,9 +59,14 @@
 }
 
 .checkers-board .black-piece {
-	background-color: hsl(0, 0%, 30%);
+	background-: hsl(0, 0%, 30%);
 
 	border-color: hsl(0, 0%, 40%);
+}
+
+.checkers-board .king-piece {
+	background-image: url(../../assets/images/star.png);
+	background-size: cover;
 }
 
 .checkers-board .selected {

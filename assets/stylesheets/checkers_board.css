@@ -32,10 +32,6 @@
 	position: relative;
 }
 
-.checkers-board .selected {
-	border: 2px solid green;
-}
-
 .checkers-board .piece {
 	/*
 	This is basically a CSS 2 hack for the CSS 3 equivalent of
@@ -66,6 +62,10 @@
 	background-color: hsl(0, 0%, 30%);
 
 	border-color: hsl(0, 0%, 40%);
+}
+
+.checkers-board .selected {
+	border: 2px solid green;
 }
 
 .upside-down {

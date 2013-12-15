@@ -121,7 +121,7 @@ CheckersGame.prototype.isLegalMove = function(piece, pos) {
 	return false;
 };
 CheckersGame.prototype.doMove = function(piece, pos) {
-	if (!this.isLegalMove(piece, pos)) return false;
+	if (!this.isLegalMove(piece, pos)) throw new CheckersGameError("Can't move '" + piece + "' to '" + pos + "'; that's against the rules.");
 
 	var movementVector = pos.subtract(piece.position);
 	if (Math.abs(movementVector.x) > 1 || Math.abs(movementVector.y) > 1) { // Jump
@@ -233,6 +233,18 @@ CheckerPiece.prototype.RANKS = {
 	MAN: 0,
 	KING: 1
 };
+
+
+/*
+* This error is thrown to indicate an action was attempted that violates the
+* rules of checkers.
+*/
+function CheckersGameError(message) {
+	this.constructor.getSuperclass().call(this, arguments);
+	this.name = this.constructor.name;
+	this.message = message;
+}
+CheckersGameError.setSuperclass(Error);
 
 
 /*

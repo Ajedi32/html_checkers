@@ -45,14 +45,17 @@ Function.prototype.withArgs = function() {
 	return partial;
 };
 
+
 function CheckersGame(options) {
 	options = (typeof options == 'undefined') ? {} : options;
 
 	this.board = (options.board === undefined) ? new CheckerBoard() : options.board;
 	this._pieceClass = (options.piece === undefined) ? HTMLCheckerPiece : options.piece;
 
-	this._pieces = [];
+	this.turn = null;
+	this._setTurn(CheckersGame.PLAYERS.BLACK);
 
+	this._pieces = [];
 	this._setUp();
 }
 CheckersGame.PLAYERS = {
@@ -121,6 +124,7 @@ CheckersGame.prototype.isLegalMove = function(piece, pos) {
 	return false;
 };
 CheckersGame.prototype.doMove = function(piece, pos) {
+	if (piece.owner !== this.turn) throw new CheckersGameError("Cannot move '" + piece + "'; it's not your turn!");
 	if (!this.isLegalMove(piece, pos)) throw new CheckersGameError("Can't move '" + piece + "' to '" + pos + "'; that's against the rules.");
 
 	var movementVector = pos.subtract(piece.position);
@@ -133,6 +137,7 @@ CheckersGame.prototype.doMove = function(piece, pos) {
 
 	this.board.movePiece(piece, pos);
 	if (this.isPromotable(piece)) piece.promote();
+	this._toggleTurn();
 };
 CheckersGame.prototype.isPromotable = function(piece) {
 	if (piece.rank == piece.RANKS.KING) return false;
@@ -141,6 +146,16 @@ CheckersGame.prototype.isPromotable = function(piece) {
 		return piece.position.y === 0;
 	} else if (piece.owner == CheckersGame.PLAYERS.BLACK) {
 		return piece.position.y === 7;
+	}
+};
+CheckersGame.prototype._setTurn = function(player) {
+	this.turn = player;
+};
+CheckersGame.prototype._toggleTurn = function() {
+	if (this.turn == CheckersGame.PLAYERS.BLACK) {
+		this._setTurn(CheckersGame.PLAYERS.RED);
+	} else if (this.turn == CheckersGame.PLAYERS.RED) {
+		this._setTurn(CheckersGame.PLAYERS.BLACK);
 	}
 };
 
@@ -258,11 +273,13 @@ CheckersGameError.setSuperclass(Error);
 */
 function HTMLCheckersGame(htmlElement) {
 	this._htmlGame = $(htmlElement).first();
+	this._turnIndicator = this._htmlGame.find('.checkers-turn');
 
 	this.constructor.getSuperclass().call(this, {
 		board: new HTMLCheckerBoard(this._htmlGame.find('.checkers-board')),
 		piece: HTMLCheckerPiece
 	});
+
 
 	this._selectedPiece = null;
 	this._suggestedSpaces = [];
@@ -326,6 +343,15 @@ HTMLCheckersGame.prototype.doMove = function(piece, pos) {
 
 	this._deselectPiece();
 	this._dehighlightLegalMoves();
+};
+HTMLCheckersGame.prototype._setTurn = function(player) {
+	this.callSuper('_setTurn', arguments);
+
+	if (this.turn == CheckersGame.PLAYERS.RED) {
+		this._turnIndicator.text("It's red's turn!");
+	} else if (this.turn == CheckersGame.PLAYERS.BLACK) {
+		this._turnIndicator.text("It's black's turn!");
+	}
 };
 
 

@@ -209,6 +209,9 @@ Vector2.prototype.subtract = function(other) {
 Vector2.prototype.equals = function(other) {
 	return ((other instanceof Vector2) && (this.x == other.x) && (this.y == other.y));
 };
+Vector2.prototype.toString = function() {
+	return this.constructor.name + "(" + this.x + ", " + this.y + ")";
+};
 
 
 function CheckerPiece(owner, rank) {
@@ -232,6 +235,9 @@ CheckerPiece.prototype.promote = function() {
 CheckerPiece.prototype.RANKS = {
 	MAN: 0,
 	KING: 1
+};
+CheckerPiece.prototype.toString = function() {
+	return this.constructor.name + "{ owner: " + this.owner + ", rank: " + this.rank + ", position: " + this.position + " }";
 };
 
 

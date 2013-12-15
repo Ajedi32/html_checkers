@@ -274,13 +274,21 @@ HTMLCheckersGame.setSuperclass(CheckersGame);
 HTMLCheckersGame.prototype._bindEventHandlers = function() {
 	for (var piece in this._pieces) {
 		piece = this._pieces[piece];
-		piece.on('click', this._selectPiece.bind(this, piece));
+		piece.on('click', this._clickPiece.bind(this, piece));
 	}
 
 	this.board.onClickSpace(this._clickSpace.bind(this));
 };
+HTMLCheckersGame.prototype._clickPiece = function(piece) {
+	if (this._selectedPiece === piece) {
+		this._deselectPiece();
+	} else {
+		this._selectPiece(piece);
+	}
+};
 HTMLCheckersGame.prototype._selectPiece = function(piece) {
-	if (this._selectedPiece !== null) this._selectedPiece.deselect();
+	this._deselectPiece();
+
 	this._selectedPiece = piece;
 	this._selectedPiece.select();
 
@@ -289,6 +297,8 @@ HTMLCheckersGame.prototype._selectPiece = function(piece) {
 HTMLCheckersGame.prototype._deselectPiece = function() {
 	if (this._selectedPiece !== null) this._selectedPiece.deselect();
 	this._selectedPiece = null;
+
+	this._dehighlightLegalMoves();
 };
 HTMLCheckersGame.prototype._highlightLegalMoves = function(piece) {
 	this._dehighlightLegalMoves();

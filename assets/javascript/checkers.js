@@ -102,7 +102,7 @@ CheckersGame.prototype._setUp = function() {
 		}
 	}
 };
-CheckersGame.prototype.getLegalMoves = function(piece) {
+CheckersGame.prototype._getLegalTargets = function(piece) {
 	if (piece === null) return [];
 
 	var legalTargets = [];
@@ -112,7 +112,6 @@ CheckersGame.prototype.getLegalMoves = function(piece) {
 		movementVector = movementVectors[movementVector];
 
 		var potentialTarget = piece.position.add(movementVector);
-		var piece2 = this.board.getPiece(potentialTarget);
 
 		if (this.board.isValidSpace(potentialTarget)) {
 			if (this.board.isEmptySpace(potentialTarget)) {
@@ -127,28 +126,26 @@ CheckersGame.prototype.getLegalMoves = function(piece) {
 
 	return legalTargets;
 };
-CheckersGame.prototype.isLegalMove = function(piece, pos) {
-	var legalMoves = this.getLegalMoves(piece);
-	for (var move in legalMoves) {
-		move = legalMoves[move];
-		if (move.equals(pos)) return true;
-	}
-	return false;
+CheckersGame.prototype.getLegalMoves = function(piece) {
+	return this._getLegalTargets(piece).map(function(legalTarget) {
+		return new CheckersMove(piece, legalTarget);
+	});
 };
-CheckersGame.prototype.doMove = function(piece, pos) {
-	if (piece.owner !== this.turn) throw new CheckersGameError("Cannot move '" + piece + "'; it's not your turn!");
-	if (!this.isLegalMove(piece, pos)) throw new CheckersGameError("Can't move '" + piece + "' to '" + pos + "'; that's against the rules.");
+CheckersGame.prototype.isLegalMove = function(move) {
+	return this.getLegalMoves(move.piece).contains(move);
+};
+CheckersGame.prototype.doMove = function(move) {
+	if (move.piece.owner !== this.turn) throw new CheckersGameError("Cannot do move '" + move + "'; it's not your turn!");
+	if (!this.isLegalMove(move)) throw new CheckersGameError("Cannot do move '" + move + "'; that's against the rules.");
 
-	var movementVector = pos.subtract(piece.position);
-	if (Math.abs(movementVector.x) > 1 || Math.abs(movementVector.y) > 1) { // Jump
-		var direction = new Vector2(movementVector.x > 0 ? 1 : -1, movementVector.y > 0 ? 1 : -1);
-		var jumpedPos = piece.position.add(direction);
-
-		this.board.clearPiece(this.board.getPiece(jumpedPos));
+	var isJump = move.isJump();
+	if (isJump) {
+		this.board.clearPiece(this._getJumpedPiece(move));
 	}
 
-	this.board.movePiece(piece, pos);
-	if (this.isPromotable(piece)) piece.promote();
+	this.board.movePiece(move.piece, move.to);
+
+	if (this.isPromotable(move.piece)) move.piece.promote();
 	this._toggleTurn();
 };
 CheckersGame.prototype.isPromotable = function(piece) {
@@ -169,6 +166,16 @@ CheckersGame.prototype._toggleTurn = function() {
 	} else if (this.turn == CheckersGame.PLAYERS.RED) {
 		this._setTurn(CheckersGame.PLAYERS.BLACK);
 	}
+};
+CheckersGame.prototype._getJumpedPiece = function(validMove) {
+	if (!validMove.isJump()) return null;
+
+	var movementVector = validMove.to.subtract(validMove.piece.position);
+	var direction = new Vector2(movementVector.x > 0 ? 1 : -1, movementVector.y > 0 ? 1 : -1);
+	var jumpedPos = validMove.piece.position.add(direction);
+	var jumpedPiece = this.board.getPiece(jumpedPos);
+
+	return jumpedPiece;
 };
 
 
@@ -266,6 +273,34 @@ CheckerPiece.prototype.RANKS = {
 CheckerPiece.prototype.toString = function() {
 	return this.constructor.name + "{ owner: " + this.owner + ", rank: " + this.rank + ", position: " + this.position + " }";
 };
+CheckerPiece.prototype.equals = function(other) {
+	return (
+		(other instanceof CheckerPiece) &&
+		(this.owner == other.owner) &&
+		(this.rank == other.rank) &&
+		equal(this.position, other.position)
+	);
+};
+
+
+function CheckersMove(piece, target) {
+	this.piece = piece;
+	this.to = target;
+}
+CheckersMove.prototype.isJump = function() {
+	var movementVector = this.to.subtract(this.piece.position);
+	return Math.abs(movementVector.x) > 1 || Math.abs(movementVector.y) > 1;
+};
+CheckersMove.prototype.equals = function(other) {
+	return (
+		(other instanceof CheckersMove) &&
+		(this.piece.equals(other.piece)) &&
+		this.to.equals(other.to)
+	);
+};
+CheckersMove.prototype.toString = function() {
+	return this.constructor.name + "{ piece: " + this.piece + ", to: " + this.to + " }";
+};
 
 
 /*
@@ -332,7 +367,7 @@ HTMLCheckersGame.prototype._deselectPiece = function() {
 HTMLCheckersGame.prototype._highlightLegalMoves = function(piece) {
 	this._dehighlightLegalMoves();
 
-	this._suggestedSpaces = this.getLegalMoves(piece);
+	this._suggestedSpaces = this.getLegalMoves(piece).map(function(move) { return move.to; });
 	for (var suggestedSpace in this._suggestedSpaces) {
 		suggestedSpace = this._suggestedSpaces[suggestedSpace];
 		this.board.highlightSpace(suggestedSpace);
@@ -348,9 +383,9 @@ HTMLCheckersGame.prototype._clickSpace = function(position) {
 	if (this._selectedPiece === null) return false;
 	if (!this._suggestedSpaces.contains(position)) return false;
 
-	this.doMove(this._selectedPiece, position);
+	this.doMove(new CheckersMove(this._selectedPiece, position));
 };
-HTMLCheckersGame.prototype.doMove = function(piece, pos) {
+HTMLCheckersGame.prototype.doMove = function(move) {
 	this.callSuper('doMove', arguments);
 
 	this._deselectPiece();

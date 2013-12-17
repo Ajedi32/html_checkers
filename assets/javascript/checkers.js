@@ -107,10 +107,7 @@ CheckersGame.prototype._getLegalTargets = function(piece) {
 
 	var legalTargets = [];
 
-	var movementVectors = piece.getMovementVectors();
-	for (var movementVector in movementVectors) {
-		movementVector = movementVectors[movementVector];
-
+	piece.getMovementVectors().forEach(function(movementVector) {
 		var potentialTarget = piece.position.add(movementVector);
 
 		if (this.board.isValidSpace(potentialTarget)) {
@@ -122,7 +119,7 @@ CheckersGame.prototype._getLegalTargets = function(piece) {
 				if (this.board.isValidSpace(potentialTarget) && this.board.isEmptySpace(potentialTarget)) legalTargets.push(potentialTarget);
 			}
 		}
-	}
+	}, this);
 
 	return legalTargets;
 };
@@ -336,10 +333,9 @@ function HTMLCheckersGame(htmlElement) {
 HTMLCheckersGame.setSuperclass(CheckersGame);
 
 HTMLCheckersGame.prototype._bindEventHandlers = function() {
-	for (var piece in this._pieces) {
-		piece = this._pieces[piece];
+	this._pieces.forEach(function(piece) {
 		piece.on('click', this._clickPiece.bind(this, piece));
-	}
+	}, this);
 
 	this.board.onClickSpace(this._clickSpace.bind(this));
 };
@@ -368,16 +364,14 @@ HTMLCheckersGame.prototype._highlightLegalMoves = function(piece) {
 	this._dehighlightLegalMoves();
 
 	this._suggestedSpaces = this.getLegalMoves(piece).map(function(move) { return move.to; });
-	for (var suggestedSpace in this._suggestedSpaces) {
-		suggestedSpace = this._suggestedSpaces[suggestedSpace];
+	this._suggestedSpaces.forEach(function(suggestedSpace) {
 		this.board.highlightSpace(suggestedSpace);
-	}
+	}, this);
 };
 HTMLCheckersGame.prototype._dehighlightLegalMoves = function() {
-	for (var suggestedSpace in this._suggestedSpaces) {
-		suggestedSpace = this._suggestedSpaces[suggestedSpace];
+	this._suggestedSpaces.forEach(function(suggestedSpace) {
 		this.board.unhighlightSpace(suggestedSpace);
-	}
+	}, this);
 };
 HTMLCheckersGame.prototype._clickSpace = function(position) {
 	if (this._selectedPiece === null) return false;

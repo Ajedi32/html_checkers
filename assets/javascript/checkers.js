@@ -22,12 +22,9 @@ Object.defineProperty(Object.prototype, 'callSuper', {
 
 Object.defineProperty(Array.prototype, 'contains', {
 	value: function(object) {
-		for (var i in this) {
-			i = this[i];
-			if (i === object) return true;
-			if (typeof i.equals == 'function' && i.equals(object)) return true;
-		}
-		return false;
+		return this.some(function(i) {
+			return (i === object) || (typeof i.equals == 'function' && i.equals(object));
+		});
 	}
 });
 

@@ -383,6 +383,9 @@ HTMLCheckersGame.prototype.doMove = function(move) {
 	this.callSuper('doMove', arguments);
 
 	this._deselectPiece();
+};
+HTMLCheckersGame.prototype._toggleTurn = function() {
+	this.callSuper('_toggleTurn', arguments);
 	this._dehighlightLegalMoves();
 };
 HTMLCheckersGame.prototype._setTurn = function(player) {

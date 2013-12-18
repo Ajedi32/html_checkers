@@ -126,9 +126,13 @@ CheckersGame.prototype._getLegalTargets = function(piece) {
 	return legalTargets;
 };
 CheckersGame.prototype.getLegalMoves = function(piece) {
-	return this._getLegalTargets(piece).map(function(legalTarget) {
+	var legalMoves = this._getLegalTargets(piece).map(function(legalTarget) {
 		return new CheckersMove(piece, legalTarget);
 	});
+	if (legalMoves.some(function(move){ return move.isJump(); })) {
+		legalMoves = legalMoves.filter(function(move){ return move.isJump(); });
+	}
+	return legalMoves;
 };
 CheckersGame.prototype.isLegalMove = function(move) {
 	return this.getLegalMoves(move.piece).contains(move);
@@ -139,10 +143,11 @@ CheckersGame.prototype.doMove = function(move) {
 	if (this._multiJumpInProgress() && !this._multiJumpPiece.equals(move.piece)) {
 		throw new CheckersGameError("Cannot do move '" + move + "'; piece '" + this._multiJumpPiece + "' is in the middle of a jump.");
 	}
+	if (this.currentPlayerCanJump() && !move.isJump()) throw new CheckersGameError("Cannot do move '" + move + "'; jumps must be taken when possible.");
 
 	var isJump = move.isJump();
 	if (isJump) {
-		this.board.clearPiece(this._getJumpedPiece(move));
+		this._removePiece(this._getJumpedPiece(move));
 	}
 
 	this.board.movePiece(move.piece, move.to);
@@ -190,6 +195,20 @@ CheckersGame.prototype.canJump = function(piece) {
 };
 CheckersGame.prototype._multiJumpInProgress = function() {
 	return this._multiJumpPiece !== null;
+};
+CheckersGame.prototype._removePiece = function(piece) {
+	this.board.clearPiece(piece);
+	this._pieces.splice(this._pieces.indexOf(piece), 1);
+};
+CheckersGame.prototype.playerCanJump = function(player) {
+	return this._pieces.filter(function(piece) {
+		return piece.owner === player;
+	}, this).some(function(piece) {
+		return this.canJump(piece);
+	}, this);
+};
+CheckersGame.prototype.currentPlayerCanJump = function() {
+	return this.playerCanJump(this.turn);
 };
 
 

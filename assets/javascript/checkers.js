@@ -67,6 +67,8 @@ function CheckersGame(options) {
 	this.turn = null;
 	this._setTurn(CheckersGame.PLAYERS.BLACK);
 
+	this._multiJumpPiece = null;
+
 	this._pieces = [];
 	this._setUp();
 }
@@ -134,6 +136,9 @@ CheckersGame.prototype.isLegalMove = function(move) {
 CheckersGame.prototype.doMove = function(move) {
 	if (move.piece.owner !== this.turn) throw new CheckersGameError("Cannot do move '" + move + "'; it's not your turn!");
 	if (!this.isLegalMove(move)) throw new CheckersGameError("Cannot do move '" + move + "'; that's against the rules.");
+	if (this._multiJumpInProgress() && !this._multiJumpPiece.equals(move.piece)) {
+		throw new CheckersGameError("Cannot do move '" + move + "'; piece '" + this._multiJumpPiece + "' is in the middle of a jump.");
+	}
 
 	var isJump = move.isJump();
 	if (isJump) {
@@ -142,8 +147,14 @@ CheckersGame.prototype.doMove = function(move) {
 
 	this.board.movePiece(move.piece, move.to);
 
+	if (isJump && this.canJump(move.piece)) { // Double jump?
+		this._multiJumpPiece = move.piece;
+	} else {
+		this._multiJumpPiece = null;
+		this._toggleTurn();
+	}
+
 	if (this.isPromotable(move.piece)) move.piece.promote();
-	this._toggleTurn();
 };
 CheckersGame.prototype.isPromotable = function(piece) {
 	if (piece.rank == piece.RANKS.KING) return false;
@@ -173,6 +184,12 @@ CheckersGame.prototype._getJumpedPiece = function(validMove) {
 	var jumpedPiece = this.board.getPiece(jumpedPos);
 
 	return jumpedPiece;
+};
+CheckersGame.prototype.canJump = function(piece) {
+	return this.getLegalMoves(piece).some(function(move){ return move.isJump(); });
+};
+CheckersGame.prototype._multiJumpInProgress = function() {
+	return this._multiJumpPiece !== null;
 };
 
 
@@ -382,7 +399,11 @@ HTMLCheckersGame.prototype._clickSpace = function(position) {
 HTMLCheckersGame.prototype.doMove = function(move) {
 	this.callSuper('doMove', arguments);
 
-	this._deselectPiece();
+	if (this._multiJumpInProgress()) {
+		this._highlightLegalMoves(this._multiJumpPiece);
+	} else {
+		this._deselectPiece();
+	}
 };
 HTMLCheckersGame.prototype._toggleTurn = function() {
 	this.callSuper('_toggleTurn', arguments);

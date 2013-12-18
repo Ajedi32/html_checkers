@@ -1,24 +1,46 @@
 Function.prototype.setSuperclass = function(target) {
+	// Set a custom field for keeping track of the object's 'superclass'.
 	this._superclass = target;
+
+	// Set the internal [[Prototype]] of instances of this object to a new object
+	// which inherits from the superclass's prototype.
 	this.prototype = Object.create(this._superclass.prototype);
+
+	// Correct the constructor attribute of this class's prototype
 	this.prototype.constructor = this;
 };
 
 Function.prototype.getSuperclass = function(target) {
+	// Easy way of finding out what a class inherits from
 	return this._superclass;
 };
 
-Object.defineProperty(Object.prototype, 'callSuper', {
-	value: function(methodName, args) {
-		var superclass = this.constructor.getSuperclass();
-		if (superclass === undefined) throw new TypeError("A superclass for " + this.constructor + " could not be found.");
-
-		var method = superclass.prototype[methodName];
-		if (typeof method != "function") throw new TypeError("TypeError: Object " + superclass.prototype + " has no method '" + methodName + "'");
-
-		return method.apply(this, args);
+Function.prototype.callSuper = function(target, methodName, args) {
+	// If methodName is ommitted, call the constructor.
+	if (arguments.length < 3) {
+		return this.callSuperConstructor(arguments[0], arguments[1]);
 	}
-});
+
+	// `args` is an empty array by default.
+	if (args === undefined || args === null) args = [];
+
+	var superclass = this.getSuperclass();
+	if (superclass === undefined) throw new TypeError("A superclass for " + this + " could not be found.");
+
+	var method = superclass.prototype[methodName];
+	if (typeof method != "function") throw new TypeError("TypeError: Object " + superclass.prototype + " has no method '" + methodName + "'");
+
+	return method.apply(target, args);
+};
+
+Function.prototype.callSuperConstructor = function(target, args) {
+	if (args === undefined || args === null) args = [];
+
+	var superclass = this.getSuperclass();
+	if (superclass === undefined) throw new TypeError("A superclass for " + this + " could not be found.");
+
+	return superclass.apply(target, args);
+};
 
 Object.defineProperty(Array.prototype, 'contains', {
 	value: function(object) {
@@ -352,7 +374,7 @@ CheckersMove.prototype.toString = function() {
 * rules of checkers.
 */
 function CheckersGameError(message) {
-	this.constructor.getSuperclass().call(this, arguments);
+	CheckersGameError.callSuper(this, arguments);
 	this.name = this.constructor.name;
 	this.message = message;
 }
@@ -366,10 +388,10 @@ function HTMLCheckersGame(htmlElement) {
 	this._htmlGame = $(htmlElement).first();
 	this._turnIndicator = this._htmlGame.find('.checkers-turn');
 
-	this.constructor.getSuperclass().call(this, {
+	HTMLCheckersGame.callSuper(this, [{
 		board: new HTMLCheckerBoard(this._htmlGame.find('.checkers-board')),
 		piece: HTMLCheckerPiece
-	});
+	}]);
 
 
 	this._selectedPiece = null;
@@ -439,7 +461,7 @@ HTMLCheckersGame.prototype._clickSpace = function(position) {
 	this.doMove(new CheckersMove(this._selectedPiece, position));
 };
 HTMLCheckersGame.prototype.doMove = function(move) {
-	this.callSuper('doMove', arguments);
+	HTMLCheckersGame.callSuper(this, 'doMove', arguments);
 
 	if (this._multiJumpInProgress()) {
 		this._highlightLegalMoves(this._multiJumpPiece);
@@ -453,11 +475,11 @@ HTMLCheckersGame.prototype.doMove = function(move) {
 	}
 };
 HTMLCheckersGame.prototype._toggleTurn = function() {
-	this.callSuper('_toggleTurn', arguments);
+	HTMLCheckersGame.callSuper(this, '_toggleTurn', arguments);
 	this._dehighlightLegalMoves();
 };
 HTMLCheckersGame.prototype._setTurn = function(player) {
-	this.callSuper('_setTurn', arguments);
+	HTMLCheckersGame.callSuper(this, '_setTurn', arguments);
 
 	if (this.turn == CheckersGame.PLAYERS.RED) {
 		this._turnIndicator.text("It's red's turn!");
@@ -471,7 +493,7 @@ HTMLCheckersGame.prototype._setTurn = function(player) {
 * A subclass of CheckerBoard which mirrors changes made to the board in the UI.
 */
 function HTMLCheckerBoard(htmlElement) {
-	this.constructor.getSuperclass().call(this);
+	HTMLCheckerBoard.callSuper(this);
 
 	this._htmlBoard = $(htmlElement).first();
 
@@ -506,7 +528,7 @@ HTMLCheckerBoard.prototype._getSpace = function(pos) {
 };
 // @Override
 HTMLCheckerBoard.prototype.setPiece = function(pos, piece) {
-	this.callSuper('setPiece', arguments);
+	HTMLCheckerBoard.callSuper(this, 'setPiece', arguments);
 
 	var space = this._getSpace(pos);
 	space.empty();
@@ -516,16 +538,16 @@ HTMLCheckerBoard.prototype.setPiece = function(pos, piece) {
 HTMLCheckerBoard.prototype.clearPiece = function(piece) {
 	var pos = piece.position;
 
-	this.callSuper('clearPiece', arguments);
+	HTMLCheckerBoard.callSuper(this, 'clearPiece', arguments);
 	this._getSpace(new Vector2(pos.x, pos.y)).empty();
 };
 HTMLCheckerBoard.prototype.movePiece = function(piece, pos) {
-	this.callSuper('clearPiece', [piece]);
+	HTMLCheckerBoard.callSuper(this, 'clearPiece', [piece]);
 
 	var space = this._getSpace(pos);
 	space.append(piece.htmlElement);
 
-	this.callSuper('setPiece', [pos, piece]);
+	HTMLCheckerBoard.callSuper(this, 'setPiece', [pos, piece]);
 };
 HTMLCheckerBoard.prototype.onClickSpace = function(func) {
 	var columnNum;
@@ -550,7 +572,7 @@ HTMLCheckerBoard.prototype.unhighlightSpace = function(pos) {
 * A subclass of CheckerPiece for use with an HTMLCheckerBoard.
 */
 function HTMLCheckerPiece(owner, rank) {
-	this.constructor.getSuperclass().call(this, owner, rank);
+	HTMLCheckerPiece.callSuper(this, arguments);
 
 	this.htmlElement = $(document.createElement('div'));
 	this.htmlElement.addClass('piece');
@@ -573,7 +595,7 @@ HTMLCheckerPiece.prototype.deselect = function() {
 	this.htmlElement.removeClass('selected');
 };
 HTMLCheckerPiece.prototype.promote = function() {
-	this.callSuper('promote', arguments);
+	HTMLCheckerPiece.callSuper(this, 'promote', arguments);
 
 	if (this.rank == this.RANKS.KING) this.htmlElement.addClass("king-piece");
 };

@@ -201,14 +201,25 @@ CheckersGame.prototype._removePiece = function(piece) {
 	this._pieces.splice(this._pieces.indexOf(piece), 1);
 };
 CheckersGame.prototype.playerCanJump = function(player) {
-	return this._pieces.filter(function(piece) {
-		return piece.owner === player;
-	}, this).some(function(piece) {
+	return this.getPiecesForPlayer(player).some(function(piece) {
 		return this.canJump(piece);
 	}, this);
 };
 CheckersGame.prototype.currentPlayerCanJump = function() {
 	return this.playerCanJump(this.turn);
+};
+CheckersGame.prototype.getPiecesForPlayer = function(player) {
+	return this._pieces.filter(function(piece) {
+		return piece.owner === player;
+	}, this);
+};
+CheckersGame.prototype.getWinner = function() {
+	if (this.getPiecesForPlayer(CheckersGame.PLAYERS.RED).length === 0) {
+		return CheckersGame.PLAYERS.BLACK;
+	} else if (this.getPiecesForPlayer(CheckersGame.PLAYERS.BLACK).length === 0) {
+		return CheckersGame.PLAYERS.RED;
+	}
+	return null;
 };
 
 
@@ -422,6 +433,11 @@ HTMLCheckersGame.prototype.doMove = function(move) {
 		this._highlightLegalMoves(this._multiJumpPiece);
 	} else {
 		this._deselectPiece();
+	}
+
+	var winner = this.getWinner();
+	if (winner !== null) {
+		window.alert("Player " + winner + " has won!");
 	}
 };
 HTMLCheckersGame.prototype._toggleTurn = function() {

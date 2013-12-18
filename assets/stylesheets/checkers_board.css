@@ -4,7 +4,7 @@
 	border-spacing: 0;
 	border: 2px solid black;
 	transition: transform 1s;
-	-webkit-transition: -webkit-transform 1s;
+	/*-webkit-transition: -webkit-transform 1s;*/
 }
 
 .checkers-board td {
@@ -75,7 +75,7 @@
 
 .upside-down {
 	transform: rotate(180deg);
-	-webkit-transform: rotate(180deg);
+	/*-webkit-transform: rotate(180deg);*/
 }
 
 .hidden {

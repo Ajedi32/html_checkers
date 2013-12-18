@@ -470,9 +470,7 @@ HTMLCheckersGame.prototype.doMove = function(move) {
 	}
 
 	var winner = this.getWinner();
-	if (winner !== null) {
-		window.alert("Player " + winner + " has won!");
-	}
+	if (winner !== null) this._declareWinner(winner);
 };
 HTMLCheckersGame.prototype._toggleTurn = function() {
 	HTMLCheckersGame.callSuper(this, '_toggleTurn', arguments);
@@ -486,6 +484,13 @@ HTMLCheckersGame.prototype._setTurn = function(player) {
 	} else if (this.turn == CheckersGame.PLAYERS.BLACK) {
 		this._turnIndicator.text("It's black's turn!");
 	}
+};
+HTMLCheckersGame.prototype._declareWinner = function(winner) {
+	window.alert("Player " + winner + " has won!");
+	this._htmlGame.find('form').removeClass('hidden');
+	$("#winner").val(winner);
+	$("#remainingPieces").val(this._pieces.length);
+	$("#submit").prop("disabled", false);
 };
 
 

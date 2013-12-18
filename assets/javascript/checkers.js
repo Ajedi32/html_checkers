@@ -387,9 +387,21 @@ HTMLCheckersGame.prototype._bindEventHandlers = function() {
 	this.board.onClickSpace(this._clickSpace.bind(this));
 };
 HTMLCheckersGame.prototype._clickPiece = function(piece) {
+	if (this._multiJumpInProgress()) {
+		window.alert("Please continue your jump.");
+		return false;
+	}
+	if (this.currentPlayerCanJump() && !this.canJump(piece)) {
+		window.alert("You must jump the other player.");
+		return false;
+	}
 	if (this._selectedPiece === piece) {
 		this._deselectPiece();
 	} else {
+		if (piece.owner != this.turn) {
+			window.alert("It's not your turn.");
+			return false;
+		}
 		this._selectPiece(piece);
 	}
 };

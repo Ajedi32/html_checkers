@@ -1,31 +1,36 @@
 /*
 * A subclass of CheckerPiece for use with an HTMLCheckerBoard.
 */
-function HTMLCheckerPiece(owner, rank) {
-	HTMLCheckerPiece.callSuper(this, arguments);
+class HTMLCheckerPiece extends CheckerPiece {
+	constructor(owner, rank) {
+		super(...arguments);
 
-	this.htmlElement = $(document.createElement('div'));
-	this.htmlElement.addClass('piece');
-	this.htmlElement.addClass((this.owner == CheckersGame.PLAYERS.RED ? 'red' : 'black') + '-piece');
+		this.htmlElement = $(document.createElement('div'));
+		this.htmlElement.addClass('piece');
+		this.htmlElement.addClass((this.owner == CheckersGame.PLAYERS.RED ? 'red' : 'black') + '-piece');
 
-	if (rank == this.RANKS.KING) this.htmlElement.addClass('king-piece');
+		if (rank == CheckerPiece.RANKS.KING) this.htmlElement.addClass('king-piece');
+	}
+
+	on() {
+		this.htmlElement.on.apply(this.htmlElement, arguments);
+	}
+
+	off() {
+		this.htmlElement.off.apply(this.htmlElement, arguments);
+	}
+
+	select() {
+		this.htmlElement.addClass('selected');
+	}
+
+	deselect() {
+		this.htmlElement.removeClass('selected');
+	}
+
+	promote() {
+		super.promote(...arguments);
+
+		if (this.rank == CheckerPiece.RANKS.KING) this.htmlElement.addClass("king-piece");
+	}
 }
-HTMLCheckerPiece.setSuperclass(CheckerPiece);
-
-HTMLCheckerPiece.prototype.on = function() {
-	this.htmlElement.on.apply(this.htmlElement, arguments);
-};
-HTMLCheckerPiece.prototype.off = function() {
-	this.htmlElement.off.apply(this.htmlElement, arguments);
-};
-HTMLCheckerPiece.prototype.select = function() {
-	this.htmlElement.addClass('selected');
-};
-HTMLCheckerPiece.prototype.deselect = function() {
-	this.htmlElement.removeClass('selected');
-};
-HTMLCheckerPiece.prototype.promote = function() {
-	HTMLCheckerPiece.callSuper(this, 'promote', arguments);
-
-	if (this.rank == this.RANKS.KING) this.htmlElement.addClass("king-piece");
-};

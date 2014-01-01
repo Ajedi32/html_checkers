@@ -109,7 +109,7 @@ describe('Vector2', function(){
 			vector.add.should.be.ok;
 		});
 
-		shouldThrowTypeErrorWhenNotGivenAVector2(function() {return vector}, 'add');
+		shouldThrowTypeErrorWhenNotGivenAVector2(function() {return vector;}, 'add');
 
 		describe('when given a valid vector', function() {
 			beforeEach(function() {
@@ -123,7 +123,7 @@ describe('Vector2', function(){
 				vector.add(other).y.should.equal(2);
 			});
 
-			shouldNotModifyOwnOrOtherXYComponents(function() {return vector}, function() {return other}, function() {
+			shouldNotModifyOwnOrOtherXYComponents(function() {return vector;}, function() {return other;}, function() {
 				vector.add(other);
 			});
 		});
@@ -136,7 +136,7 @@ describe('Vector2', function(){
 			vector.subtract.should.be.ok;
 		});
 
-		shouldThrowTypeErrorWhenNotGivenAVector2(function() {return vector}, 'subtract');
+		shouldThrowTypeErrorWhenNotGivenAVector2(function() {return vector;}, 'subtract');
 
 		describe('when given a valid vector', function() {
 			beforeEach(function() {
@@ -149,7 +149,7 @@ describe('Vector2', function(){
 			it("should return a vector with a y component equaling the difference of this and the other vector's y components", function(){
 				vector.subtract(other).y.should.equal(-12);
 			});
-			shouldNotModifyOwnOrOtherXYComponents(function() {return vector}, function() {return other}, function() {
+			shouldNotModifyOwnOrOtherXYComponents(function() {return vector;}, function() {return other;}, function() {
 				vector.add(other);
 			});
 		});

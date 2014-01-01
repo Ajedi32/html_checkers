@@ -42,12 +42,8 @@ describe('Vector2', function(){
 		});
 	});
 
-	describe('#add(other)', function() {
+	function shouldThrowTypeErrorWhenNotGivenAVector2(object, func) {
 		var other;
-
-		it("should be defined", function (){
-			vector.add.should.be.ok;
-		});
 
 		describe('when given an object that is not a vector2', function() {
 			beforeEach(function() {
@@ -56,7 +52,7 @@ describe('Vector2', function(){
 
 			it("should throw a TypeError", function(){
 				(function() {
-					vector.add(other);
+					object()[func](other);
 				}).should.throw(TypeError);
 			});
 		});
@@ -68,7 +64,7 @@ describe('Vector2', function(){
 
 			it("should throw a TypeError", function(){
 				(function() {
-					vector.add(other);
+					object()[func](other);
 				}).should.throw(TypeError);
 			});
 		});
@@ -81,10 +77,39 @@ describe('Vector2', function(){
 
 			it("should throw a TypeError", function(){
 				(function() {
-					vector.add(other);
+					object()[func](other);
 				}).should.throw(TypeError);
 			});
 		});
+	}
+
+	function shouldNotModifyOwnOrOtherXYComponents(self, other, testFunc) {
+		it("should not modify its own x component", function() {
+			testFunc();
+			self().x.should.equal(3);
+		});
+		it("should not modify its own y component", function() {
+			testFunc();
+			self().y.should.equal(-5);
+		});
+		it("should not modify the other vector's x component", function() {
+			testFunc();
+			other().x.should.equal(1);
+		});
+		it("should not modify the other vector's y component", function() {
+			testFunc();
+			other().y.should.equal(7);
+		});
+	}
+
+	describe('#add(other)', function() {
+		var other;
+
+		it("should be defined", function (){
+			vector.add.should.be.ok;
+		});
+
+		shouldThrowTypeErrorWhenNotGivenAVector2(function() {return vector}, 'add');
 
 		describe('when given a valid vector', function() {
 			beforeEach(function() {
@@ -97,21 +122,9 @@ describe('Vector2', function(){
 			it("should return a vector with a y component equaling the sum of this and the other vector's y components", function(){
 				vector.add(other).y.should.equal(2);
 			});
-			it("should not modify its own x component", function() {
+
+			shouldNotModifyOwnOrOtherXYComponents(function() {return vector}, function() {return other}, function() {
 				vector.add(other);
-				vector.x.should.equal(3);
-			});
-			it("should not modify its own y component", function() {
-				vector.add(other);
-				vector.y.should.equal(-5);
-			});
-			it("should not modify the other vector's x component", function() {
-				vector.add(other);
-				other.x.should.equal(1);
-			});
-			it("should not modify the other vector's y component", function() {
-				vector.add(other);
-				other.y.should.equal(7);
 			});
 		});
 	});
@@ -123,42 +136,7 @@ describe('Vector2', function(){
 			vector.subtract.should.be.ok;
 		});
 
-		describe('when given an object that is not a vector2', function() {
-			beforeEach(function() {
-				other = {};
-			});
-
-			it("should throw a TypeError", function(){
-				(function() {
-					vector.subtract(other);
-				}).should.throw(TypeError);
-			});
-		});
-
-		describe('when given null', function() {
-			beforeEach(function() {
-				other = null;
-			});
-
-			it("should throw a TypeError", function(){
-				(function() {
-					vector.subtract(other);
-				}).should.throw(TypeError);
-			});
-		});
-
-
-		describe('when given undefined', function() {
-			beforeEach(function() {
-				other = undefined;
-			});
-
-			it("should throw a TypeError", function(){
-				(function() {
-					vector.subtract(other);
-				}).should.throw(TypeError);
-			});
-		});
+		shouldThrowTypeErrorWhenNotGivenAVector2(function() {return vector}, 'subtract');
 
 		describe('when given a valid vector', function() {
 			beforeEach(function() {
@@ -171,21 +149,8 @@ describe('Vector2', function(){
 			it("should return a vector with a y component equaling the difference of this and the other vector's y components", function(){
 				vector.subtract(other).y.should.equal(-12);
 			});
-			it("should not modify its own x component", function() {
-				vector.subtract(other);
-				vector.x.should.equal(3);
-			});
-			it("should not modify its own y component", function() {
-				vector.subtract(other);
-				vector.y.should.equal(-5);
-			});
-			it("should not modify the other vector's x component", function() {
-				vector.subtract(other);
-				other.x.should.equal(1);
-			});
-			it("should not modify the other vector's y component", function() {
-				vector.subtract(other);
-				other.y.should.equal(7);
+			shouldNotModifyOwnOrOtherXYComponents(function() {return vector}, function() {return other}, function() {
+				vector.add(other);
 			});
 		});
 	});

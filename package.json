@@ -7,6 +7,9 @@
     "grunt-contrib-nodeunit": "~0.2.0",
     "grunt-contrib-uglify": "~0.2.2",
     "traceur": "0.0.9",
-    "grunt-traceur": "0.0.3"
+    "grunt-traceur": "0.0.3",
+    "glob": "~3.2.7",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-clean": "~0.5.0"
   }
 }

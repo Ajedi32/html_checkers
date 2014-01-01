@@ -18,5 +18,5 @@ Vector2.prototype.toString = function() {
 };
 
 // For NodeJS
-if (exports === undefined) exports = {};
+if (typeof exports == "undefined") exports = {};
 exports.Vector2 = Vector2;

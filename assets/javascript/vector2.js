@@ -16,3 +16,7 @@ Vector2.prototype.equals = function(other) {
 Vector2.prototype.toString = function() {
 	return this.constructor.name + "(" + this.x + ", " + this.y + ")";
 };
+
+// For NodeJS
+if (exports === undefined) exports = {};
+exports.Vector2 = Vector2;

@@ -39,6 +39,12 @@ module.exports = function(grunt) {
     clean: {
       concat: ["./assets/javascript/checkers.js"],
       traceur: ["./assets/javascript/*.traceur.out.js", "assets/javascript/**/*.traceur.out.js"]
+    },
+
+    simplemocha: {
+      options: {},
+
+      all: { src: ['test/*.js', 'test/**/*.js'] }
     }
   });
 
@@ -46,8 +52,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-clean');
 
+  grunt.loadNpmTasks('grunt-simple-mocha');
+
   // Default task(s).
   grunt.registerTask('build', ['traceur:all', 'concat:checkers']);
+  grunt.registerTask('test', ['traceur:all', 'simplemocha:all']);
   grunt.registerTask('default', ['build']);
 
 };

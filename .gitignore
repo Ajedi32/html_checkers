@@ -1,1 +1,3 @@
 node_modules/
+*.traceur.out.js
+assets/javascript/checkers.js

@@ -1,6 +1,6 @@
 var should = require("should");
 
-var Vector2 = require("../assets/javascript/vector2.js").Vector2;
+var Vector2 = require("../assets/javascript/vector2.traceur.out.js").Vector2;
 
 describe('Vector2', function(){
 	var vector;

@@ -28,7 +28,7 @@ module.exports = function(grunt) {
           'assets/javascript/global.js',
           'assets/javascript/function.js',
           'assets/javascript/array.js',
-          'assets/javascript/vector2.js',
+          'assets/javascript/vector2.traceur.out.js',
           'assets/javascript/checkers/*.js',
           'assets/javascript/html_checkers/*.js',
           'assets/javascript/main.js'
